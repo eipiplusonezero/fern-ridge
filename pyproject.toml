@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "magnum-monitor"
+version = "0.1.0"
+description = "Decode data from a Magnum inverter's MagNet RS485 bus"
+requires-python = ">=3.9"
+dependencies = ["pyserial>=3.5"]
+
+[project.scripts]
+magnum-monitor = "magnum_monitor.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["magnum_monitor*"]
