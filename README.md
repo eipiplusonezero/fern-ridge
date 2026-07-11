@@ -5,6 +5,49 @@ A modernized Python 3 rewrite of [obrien28/MagnasineMagPy](https://github.com/ob
 inverters (MS-series, ME-series, etc.) to talk to their remote panel,
 AGS generator-start controller, and battery monitor.
 
+## Hardware
+
+You need something to convert between the Magnum inverter's RS485 output
+and whatever your monitoring device speaks — a Raspberry Pi (any model;
+this is 19200 baud, a Pi Zero W is plenty) works well and is what the
+original project targeted.
+
+**Adapter.** The simplest option is a USB-to-RS485 adapter/dongle (~$10–15,
+common chipsets are FTDI, CH340, CP2102). Plug it into any Pi USB port and
+it shows up as `/dev/ttyUSB0` (or similar) — that's what you pass to
+`--port`. The alternative is an RS485 HAT on the Pi's GPIO header (a
+MAX485-style chip); more wiring, but frees up the USB port and is a better
+fit for a permanent/enclosed build.
+
+**Wiring.** The inverter's green "Network" RJ11 jack (per the pinout
+documented in the original project, since Magnum's own comms-protocol PDF
+was out of date for at least one inverter model):
+
+- Pin 2 = A+ (0–5V)
+- Pin 3 = GND
+- Pin 5 = B− (7–12V)
+- Pins 1, 4 = not connected; pin 6 (14V) not needed for data
+
+Connect A/B/GND to the matching terminals on the RS485 adapter.
+
+**Permissions.** Your user account may not have access to the serial
+device by default:
+
+```bash
+sudo usermod -a -G dialout $USER
+```
+
+then log out/in (or reboot) for it to take effect.
+
+**First run.** Once wired up, run with verbose logging to see whether
+frames are actually syncing — this is the real test of whether the
+framing/decode logic (see "Honest caveats" below) holds up against real
+hardware, which I have not been able to verify against a live inverter:
+
+```bash
+python -m magnum_monitor --port /dev/ttyUSB0 --json -v
+```
+
 ## Why this needed a rewrite, not just a cleanup
 
 The original is Python 2 and **cannot run as-is on Python 3**: it decodes
